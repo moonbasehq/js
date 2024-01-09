@@ -1,0 +1,28 @@
+{
+  "name": "@repo/core",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./core": "./src/core.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint . --max-warnings 0",
+    "generate:component": "turbo gen core",
+    "generate:api": "npx openapi-typescript http://api.moonbase.hqdev:8085/v1/openapi.json --output src/api.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@turbo/gen": "^1.11.3",
+    "@types/eslint": "^8.56.1",
+    "@types/node": "^20.10.6",
+    "@types/node-fetch": "^2.6.10",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "openapi-fetch": "^0.8.2"
+  }
+}
