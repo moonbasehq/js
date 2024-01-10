@@ -510,7 +510,9 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": unknown;
+          "application/json": {
+            success: boolean;
+          };
         };
       };
       default: components["responses"]["error"];
