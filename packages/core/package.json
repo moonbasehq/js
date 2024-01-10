@@ -1,9 +1,8 @@
 {
   "name": "@moonbasehq/js-core",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.0.0-canary-0",
   "exports": {
-    "./core": "./src/core.ts"
+    ".": "./src/index.ts"
   },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",

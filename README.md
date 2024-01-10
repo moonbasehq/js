@@ -1,80 +1,100 @@
-# Turborepo starter
+# JavaScript SDK's for Moonbase
 
-This is an official starter Turborepo.
+Contains SDKs. Current offered SDK's:
 
-## Using this example
+1. [Core](./packages/core) (default)
+2. [Pino](./packages/pino)
 
-Run the following command:
+## Usage
 
-```sh
-npx create-turbo@latest
+### Default usage
+
+```ts
+const moon = new Moonbase({
+  apiKey: 'moonbase_<...>',
+});
+
+// returns a promise
+moon.ingest('clqq3cle50009zg3fplnzqwxs', [{
+  body: 'this is a log'
+}])
 ```
 
-## What's inside?
+### Testing locally
 
-This Turborepo includes the following packages/apps:
+Set the `MOONBASE_URL` env in your local shell.
 
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@moonbasehq/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@moonbasehq/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-pnpm build
+```bash
+export MOONBASE_URL='http://api.moonbase.hqdev:8085/v1'
 ```
 
-### Develop
+Then...
 
-To develop all apps and packages, run the following command:
+```ts
+const moon = new Moonbase({
+  apiKey: 'moonbase_<...>',
+});
 
-```
-cd my-turborepo
-pnpm dev
-```
-
-### Remote Caching
-
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+// returns a promise
+moon.ingest('clqq3cle50009zg3fplnzqwxs', [{
+  body: 'this is a log'
+}])
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+### Pino transport
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+```ts
+import build from 'pino-abstract-transport';
+import { Moonbase } from '@moonbasehq/js-core';
 
+export default async function moonbaseTransport(options: { apiKey: string, projectId: string }) {
+  const moon = new Moonbase(options);
+
+  return build(
+    async function (source: any) {
+      for await (const obj of source) {
+        const { time, level, ...rest } = obj;
+
+        const event = {
+          _time: time,
+          level: mapLogLevel(level),
+          ...rest,
+          body: rest.msg,
+        };
+
+        delete event.msg;
+
+        moon.ingest(options.projectId, [event]);
+      }
+    },
+    // { close: async () => await moon.flush() },
+  );
+}
+
+export const mapLogLevel = (level: string | number) => {
+  if (typeof level === 'string') {
+    return level;
+  }
+
+  if (level <= 10) {
+    return 'trace';
+  }
+  if (level <= 20) {
+    return 'debug';
+  }
+  if (level <= 30) {
+    return 'info';
+  }
+  if (level <= 40) {
+    return 'warn';
+  }
+  if (level <= 50) {
+    return 'error';
+  }
+  if (level <= 60) {
+    return 'fatal';
+  }
+
+  return null;
+};
 ```
-npx turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
