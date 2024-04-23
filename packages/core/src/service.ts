@@ -2,7 +2,7 @@ import createClient from "openapi-fetch";
 
 import { paths, operations } from "./api";
 
-const BASE_API_URL = process.env.MOONBASE_URL || "http://api.moonbase.com/v1";
+const BASE_API_URL = process.env.MOONBASE_URL || "https://api.moonbasehq.com/v1";
 const CORE_VERSION = "v0";
 
 type ClientOptions = {
