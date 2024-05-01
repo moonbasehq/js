@@ -12,10 +12,11 @@ Contains SDKs. Current offered SDK's:
 ```ts
 const moon = new Moonbase({
   apiKey: 'moonbase_<...>',
+  projectId: 'clqq3cle50009zg3fplnzqwxs'
 });
 
 // returns a promise
-moon.ingest('clqq3cle50009zg3fplnzqwxs', [{
+moon.ingest([{
   body: 'this is a log'
 }])
 ```
@@ -33,10 +34,11 @@ Then...
 ```ts
 const moon = new Moonbase({
   apiKey: 'moonbase_<...>',
+  projectId: 'clqq3cle50009zg3fplnzqwxs'
 });
 
 // returns a promise
-moon.ingest('clqq3cle50009zg3fplnzqwxs', [{
+moon.ingest([{
   body: 'this is a log'
 }])
 ```
@@ -56,15 +58,11 @@ export default async function moonbaseTransport(options: { apiKey: string, proje
         const { time, level, ...rest } = obj;
 
         const event = {
-          _time: time,
           level: mapLogLevel(level),
           ...rest,
-          body: rest.msg,
         };
 
-        delete event.msg;
-
-        moon.ingest(options.projectId, [event]);
+        moon.ingest(event);
       }
     },
     // { close: async () => await moon.flush() },

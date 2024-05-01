@@ -5,16 +5,23 @@
 
 
 export interface paths {
+  "/projects/{id}/logs": {
+    /**
+     * Push logs for a project
+     * @description Pushes logs for a specific project domain
+     */
+    post: operations["projects-logs"];
+  };
   "/{teamId}/projects/slug/{slug}": {
     /**
-     * Get project by slug
+     * Create project
      * @description Gets a project by a unique slug.
      */
     get: operations["projects-getBySlug"];
   };
   "/{teamId}/projects/{id}": {
     /**
-     * Get project
+     * Create project
      * @description Gets a project by a unique ID.
      */
     get: operations["projects-getById"];
@@ -61,11 +68,6 @@ export interface paths {
      * @description Gets logs for a given team
      */
     get: operations["logs-list"];
-    /**
-     * Ingest logs
-     * @description Ingests log messages for a team.
-     */
-    post: operations["logs-create"];
   };
   "/logs/count": {
     /**
@@ -95,43 +97,12 @@ export interface paths {
      */
     get: operations["logs-interval"];
   };
-  "/logs/attributes": {
+  "/logs/suggestions": {
     /**
-     * Active log attributes
-     * @description Gets all active log attributes across the team. Used for suggestions in the query builder..
+     * Active log suggestions
+     * @description Gets active log suggestion paths across the team. Used for suggestions in the query builder.
      */
-    get: operations["logs-attributes"];
-  };
-  "/projects/{id}/alerts/{alertId}": {
-    /**
-     * Get project
-     * @description Gets a alert by a unique ID.
-     */
-    get: operations["alerts-getById"];
-    /**
-     * Delete alert
-     * @description Deletes an alert by ID.
-     */
-    delete: operations["alerts-delete"];
-    /**
-     * Update Alert
-     * @description Updates an alert by ID.
-     */
-    patch: operations["alerts-update"];
-  };
-  "/projects/{id}/alerts": {
-    /**
-     * Create alert
-     * @description Create an alert for a team.
-     */
-    post: operations["alerts-create"];
-  };
-  "/{teamId}/alerts": {
-    /**
-     * List Alerts
-     * @description Lists all alerts within a team.
-     */
-    get: operations["alerts-list"];
+    get: operations["logs-suggestions"];
   };
   "/integrations": {
     /**
@@ -206,7 +177,30 @@ export type external = Record<string, never>;
 export interface operations {
 
   /**
-   * Get project by slug
+   * Push logs for a project
+   * @description Pushes logs for a specific project domain
+   */
+  "projects-logs": {
+    parameters: {
+      path: {
+        /** @description ID of the project. */
+        id: string;
+      };
+    };
+    responses: {
+      /** @description Successful response */
+      200: {
+        content: {
+          "application/json": {
+            success: boolean;
+          };
+        };
+      };
+      default: components["responses"]["error"];
+    };
+  };
+  /**
+   * Create project
    * @description Gets a project by a unique slug.
    */
   "projects-getBySlug": {
@@ -238,7 +232,7 @@ export interface operations {
     };
   };
   /**
-   * Get project
+   * Create project
    * @description Gets a project by a unique ID.
    */
   "projects-getById": {
@@ -466,8 +460,9 @@ export interface operations {
    */
   "logs-getSingle": {
     parameters: {
-      query?: {
-        teamId?: string;
+      query: {
+        /** @description ID of the team that the log belongs to. */
+        teamId: string;
       };
       path: {
         /** @description The id of the log */
@@ -520,7 +515,7 @@ export interface operations {
    */
   "logs-list": {
     parameters: {
-      query?: {
+      query: {
         /** @description A search query to find logs by. */
         q?: unknown;
         /** @description Comma delimited list of projectIds. Ex 'cuid1,cuid2,cuid3'. */
@@ -529,7 +524,8 @@ export interface operations {
         end?: string;
         /** @description Indicates the next offset to start searching from. */
         cursor?: unknown;
-        teamId?: string;
+        /** @description ID of the team that the logs belongs to. */
+        teamId: string;
         limit?: unknown;
         rel?: "30_min" | "60_min" | "3_hours" | "6_hours" | "12_hours" | "24_hours" | "2_days" | "7_days" | "30_days";
       };
@@ -571,55 +567,14 @@ export interface operations {
     };
   };
   /**
-   * Ingest logs
-   * @description Ingests log messages for a team.
-   */
-  "logs-create": {
-    requestBody: {
-      content: {
-        "application/json": {
-          data: ({
-              body: string | {
-                [key: string]: unknown;
-              };
-              level?: string;
-              /** @default 0 */
-              usageBytes?: string;
-              hostname?: string;
-              service?: string;
-              /** Format: date-time */
-              timestamp?: string;
-              attributes?: {
-                [key: string]: string;
-              };
-            })[];
-          /** @description ID of the project that the log is for. */
-          projectId?: string;
-          /** @description ID of the team that the logs belongs to. */
-          teamId?: string;
-        };
-      };
-    };
-    responses: {
-      /** @description Successful response */
-      200: {
-        content: {
-          "application/json": {
-            success: boolean;
-          };
-        };
-      };
-      default: components["responses"]["error"];
-    };
-  };
-  /**
    * Count daily logs
    * @description Gets a daily aggreagtion of logs for a given team.
    */
   "logs-count": {
     parameters: {
       query: {
-        teamId?: string;
+        /** @description ID of the team that the logs belongs to. */
+        teamId: string;
         metric: "30_day" | "60_day";
       };
     };
@@ -666,6 +621,7 @@ export interface operations {
     parameters: {
       query?: {
         teamId?: string;
+        projectId?: string;
       };
     };
     responses: {
@@ -712,12 +668,14 @@ export interface operations {
     };
   };
   /**
-   * Active log attributes
-   * @description Gets all active log attributes across the team. Used for suggestions in the query builder..
+   * Active log suggestions
+   * @description Gets active log suggestion paths across the team. Used for suggestions in the query builder.
    */
-  "logs-attributes": {
+  "logs-suggestions": {
     parameters: {
-      query?: {
+      query: {
+        /** @description Gets a list of columns that match a search term. Limited to 10. */
+        term: string;
         teamId?: string;
       };
     };
@@ -725,542 +683,7 @@ export interface operations {
       /** @description Successful response */
       200: {
         content: {
-          "application/json": {
-              /** @description The key of the attribute within Moonbase. */
-              key: string;
-              /** @description The count of occurences of the attribute key */
-              occurences: string;
-            }[];
-        };
-      };
-      default: components["responses"]["error"];
-    };
-  };
-  /**
-   * Get project
-   * @description Gets a alert by a unique ID.
-   */
-  "alerts-getById": {
-    parameters: {
-      path: {
-        /** @description ID of the project that the alert belongs to. */
-        id: string;
-        /** @description ID of the alert being fetched. */
-        alertId: string;
-      };
-    };
-    responses: {
-      /** @description Successful response */
-      200: {
-        content: {
-          "application/json": {
-            id: string;
-            name: string | null;
-            query: string;
-            projectId: string;
-            userId: string;
-            /** Format: date-time */
-            lastNotifiedAt: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            deletedAt: string | null;
-            /** @default v0 */
-            lang_version?: string;
-            /** @enum {string} */
-            type: "log";
-            /** @enum {string} */
-            buffer: "min_15" | "min_30" | "hr_1" | "hr_3" | "hr_6";
-            /** @enum {string} */
-            state: "normal" | "warning" | "alerting";
-            /** @default true */
-            enabled?: boolean;
-            alertJobs: ({
-                id: string;
-                alertId: string;
-                error: string | null;
-                state: string;
-                /** Format: date-time */
-                acknowlegedAt?: string;
-                value: number;
-                acknowlegedBy?: {
-                  id: string;
-                  /** Format: email */
-                  email: string;
-                };
-                /** @enum {string} */
-                alertState: "normal" | "warning" | "alerting";
-                /** Format: date-time */
-                createdAt: string;
-              })[];
-            alertStrategies: ({
-                /** @enum {string} */
-                comparator: "gt" | "eq" | "lt" | "lte" | "gte";
-                value: number;
-                /** @enum {string} */
-                pendingPeriod: "none" | "min_1" | "min_5" | "min_10" | "min_15" | "min_30" | "hr_1" | "hr_6";
-                /** @enum {string} */
-                interval: "sec_30" | "min_1" | "min_2" | "min_5" | "min_10" | "min_30" | "hr_1" | "hr_3" | "hr_6" | "hr_12";
-              })[];
-            alertIntegrations: {
-                id: string;
-                alertId: string;
-                integration: {
-                  id: string;
-                  /** Format: date-time */
-                  createdAt: string;
-                  enabled: boolean;
-                  config: {
-                    [key: string]: unknown;
-                  };
-                  integration: {
-                    id: string;
-                    name: string;
-                    type: string;
-                  };
-                };
-                /** Format: date-time */
-                createdAt: string;
-              }[];
-            project: {
-              id: string;
-              name: string | null;
-              teamId: string;
-              slug: string;
-              description: string | null;
-              environment: string | null;
-              /** Format: date-time */
-              createdAt: string;
-            };
-          };
-        };
-      };
-      default: components["responses"]["error"];
-    };
-  };
-  /**
-   * Delete alert
-   * @description Deletes an alert by ID.
-   */
-  "alerts-delete": {
-    parameters: {
-      path: {
-        /** @description ID of the project that the alert belongs to. */
-        id: string;
-        /** @description ID of the alert that is being deleted */
-        alertId: string;
-      };
-    };
-    responses: {
-      /** @description Successful response */
-      200: {
-        content: {
-          "application/json": unknown;
-        };
-      };
-      default: components["responses"]["error"];
-    };
-  };
-  /**
-   * Update Alert
-   * @description Updates an alert by ID.
-   */
-  "alerts-update": {
-    parameters: {
-      path: {
-        /** @description The ID of the project that owns the alert. */
-        id: string;
-        /** @description ID of the alert that is being deleted */
-        alertId: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          update: {
-            /** @description Name of the alert */
-            name?: string;
-            /** @description The query used for the alert. */
-            query?: string;
-            /**
-             * @description The enabled state of the alert
-             * @default true
-             */
-            enabled?: boolean;
-            strategy?: {
-              /**
-               * @description The comparator for the alert strategy.
-               * @enum {string}
-               */
-              comparator?: "gt" | "eq" | "lt" | "lte" | "gte";
-              /**
-               * @description The pending period for the alert strategy. An alert will first transition to pending until this period is elapsed. Value set to 'none' by default.
-               * @enum {string}
-               */
-              pendingPeriod?: "none" | "min_1" | "min_5" | "min_10" | "min_15" | "min_30" | "hr_1" | "hr_6";
-              /** @description The value of the alert strategy */
-              value?: number;
-              /**
-               * @description The interval that the alert strategy runs on.
-               * @enum {string}
-               */
-              interval?: "sec_30" | "min_1" | "min_2" | "min_5" | "min_10" | "min_30" | "hr_1" | "hr_3" | "hr_6" | "hr_12";
-            };
-            /**
-             * @description How long of a buffer should exist before firing another alert.
-             * @enum {string}
-             */
-            buffer?: "min_15" | "min_30" | "hr_1" | "hr_3" | "hr_6";
-            /** @description The ID of the integration configuration to use for the alert. */
-            integrationConfigId?: string;
-          };
-        };
-      };
-    };
-    responses: {
-      /** @description Successful response */
-      200: {
-        content: {
-          "application/json": {
-            id: string;
-            name: string | null;
-            query: string;
-            projectId: string;
-            userId: string;
-            /** Format: date-time */
-            lastNotifiedAt: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            deletedAt: string | null;
-            /** @default v0 */
-            lang_version?: string;
-            /** @enum {string} */
-            type: "log";
-            /** @enum {string} */
-            buffer: "min_15" | "min_30" | "hr_1" | "hr_3" | "hr_6";
-            /** @enum {string} */
-            state: "normal" | "warning" | "alerting";
-            /** @default true */
-            enabled?: boolean;
-            alertJobs: ({
-                id: string;
-                alertId: string;
-                error: string | null;
-                state: string;
-                /** Format: date-time */
-                acknowlegedAt?: string;
-                value: number;
-                acknowlegedBy?: {
-                  id: string;
-                  /** Format: email */
-                  email: string;
-                };
-                /** @enum {string} */
-                alertState: "normal" | "warning" | "alerting";
-                /** Format: date-time */
-                createdAt: string;
-              })[];
-            alertStrategies: ({
-                /** @enum {string} */
-                comparator: "gt" | "eq" | "lt" | "lte" | "gte";
-                value: number;
-                /** @enum {string} */
-                pendingPeriod: "none" | "min_1" | "min_5" | "min_10" | "min_15" | "min_30" | "hr_1" | "hr_6";
-                /** @enum {string} */
-                interval: "sec_30" | "min_1" | "min_2" | "min_5" | "min_10" | "min_30" | "hr_1" | "hr_3" | "hr_6" | "hr_12";
-              })[];
-            alertIntegrations: {
-                id: string;
-                alertId: string;
-                integration: {
-                  id: string;
-                  /** Format: date-time */
-                  createdAt: string;
-                  enabled: boolean;
-                  config: {
-                    [key: string]: unknown;
-                  };
-                  integration: {
-                    id: string;
-                    name: string;
-                    type: string;
-                  };
-                };
-                /** Format: date-time */
-                createdAt: string;
-              }[];
-            project: {
-              id: string;
-              name: string | null;
-              teamId: string;
-              slug: string;
-              description: string | null;
-              environment: string | null;
-              /** Format: date-time */
-              createdAt: string;
-            };
-          };
-        };
-      };
-      default: components["responses"]["error"];
-    };
-  };
-  /**
-   * Create alert
-   * @description Create an alert for a team.
-   */
-  "alerts-create": {
-    parameters: {
-      path: {
-        /** @description The ID of the project that owns the alert. */
-        id: string;
-      };
-    };
-    requestBody: {
-      content: {
-        "application/json": {
-          /** @description Name of the alert */
-          name: string;
-          /** @description The query used for the alert. */
-          query: string;
-          strategy: {
-            /**
-             * @description The type of alert strategy. Threshold is only supported right now.
-             * @default threshold
-             * @enum {string}
-             */
-            type?: "threshold" | "change" | "anomlay";
-            /**
-             * @description The comparator for the alert strategy.
-             * @enum {string}
-             */
-            comparator: "gt" | "eq" | "lt" | "lte" | "gte";
-            /**
-             * @description The pending period for the alert strategy. An alert will first transition to pending until this period is elapsed. Value set to 'none' by default.
-             * @enum {string}
-             */
-            pendingPeriod: "none" | "min_1" | "min_5" | "min_10" | "min_15" | "min_30" | "hr_1" | "hr_6";
-            /** @description The value of the alert strategy */
-            value: number;
-            /**
-             * @description The interval that the alert strategy runs on.
-             * @enum {string}
-             */
-            interval: "sec_30" | "min_1" | "min_2" | "min_5" | "min_10" | "min_30" | "hr_1" | "hr_3" | "hr_6" | "hr_12";
-          };
-          /**
-           * @description How long of a buffer should exist before firing another alert.
-           * @enum {string}
-           */
-          buffer: "min_15" | "min_30" | "hr_1" | "hr_3" | "hr_6";
-          /** @description The ID of the integration configuration to use for the alert. */
-          integrationConfigId: string;
-          /**
-           * @description The type of alert. Defaults to log alert.
-           * @default log
-           * @enum {string}
-           */
-          type?: "log";
-        };
-      };
-    };
-    responses: {
-      /** @description Successful response */
-      200: {
-        content: {
-          "application/json": {
-            id: string;
-            name: string | null;
-            query: string;
-            projectId: string;
-            userId: string;
-            /** Format: date-time */
-            lastNotifiedAt: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: date-time */
-            deletedAt: string | null;
-            /** @default v0 */
-            lang_version?: string;
-            /** @enum {string} */
-            type: "log";
-            /** @enum {string} */
-            buffer: "min_15" | "min_30" | "hr_1" | "hr_3" | "hr_6";
-            /** @enum {string} */
-            state: "normal" | "warning" | "alerting";
-            /** @default true */
-            enabled?: boolean;
-            alertJobs: ({
-                id: string;
-                alertId: string;
-                error: string | null;
-                state: string;
-                /** Format: date-time */
-                acknowlegedAt?: string;
-                value: number;
-                acknowlegedBy?: {
-                  id: string;
-                  /** Format: email */
-                  email: string;
-                };
-                /** @enum {string} */
-                alertState: "normal" | "warning" | "alerting";
-                /** Format: date-time */
-                createdAt: string;
-              })[];
-            alertStrategies: ({
-                /** @enum {string} */
-                comparator: "gt" | "eq" | "lt" | "lte" | "gte";
-                value: number;
-                /** @enum {string} */
-                pendingPeriod: "none" | "min_1" | "min_5" | "min_10" | "min_15" | "min_30" | "hr_1" | "hr_6";
-                /** @enum {string} */
-                interval: "sec_30" | "min_1" | "min_2" | "min_5" | "min_10" | "min_30" | "hr_1" | "hr_3" | "hr_6" | "hr_12";
-              })[];
-            alertIntegrations: {
-                id: string;
-                alertId: string;
-                integration: {
-                  id: string;
-                  /** Format: date-time */
-                  createdAt: string;
-                  enabled: boolean;
-                  config: {
-                    [key: string]: unknown;
-                  };
-                  integration: {
-                    id: string;
-                    name: string;
-                    type: string;
-                  };
-                };
-                /** Format: date-time */
-                createdAt: string;
-              }[];
-            project: {
-              id: string;
-              name: string | null;
-              teamId: string;
-              slug: string;
-              description: string | null;
-              environment: string | null;
-              /** Format: date-time */
-              createdAt: string;
-            };
-          };
-        };
-      };
-      default: components["responses"]["error"];
-    };
-  };
-  /**
-   * List Alerts
-   * @description Lists all alerts within a team.
-   */
-  "alerts-list": {
-    parameters: {
-      query?: {
-        take?: unknown;
-        after?: string;
-      };
-      path: {
-        /** @description ID of the team that the alerts belongs to. */
-        teamId: string;
-      };
-    };
-    responses: {
-      /** @description Successful response */
-      200: {
-        content: {
-          "application/json": {
-            nodes: ({
-                id: string;
-                name: string | null;
-                query: string;
-                projectId: string;
-                userId: string;
-                /** Format: date-time */
-                lastNotifiedAt: string;
-                /** Format: date-time */
-                createdAt: string;
-                /** Format: date-time */
-                deletedAt: string | null;
-                /** @default v0 */
-                lang_version?: string;
-                /** @enum {string} */
-                type: "log";
-                /** @enum {string} */
-                buffer: "min_15" | "min_30" | "hr_1" | "hr_3" | "hr_6";
-                /** @enum {string} */
-                state: "normal" | "warning" | "alerting";
-                /** @default true */
-                enabled?: boolean;
-                alertJobs: ({
-                    id: string;
-                    alertId: string;
-                    error: string | null;
-                    state: string;
-                    /** Format: date-time */
-                    acknowlegedAt?: string;
-                    value: number;
-                    acknowlegedBy?: {
-                      id: string;
-                      /** Format: email */
-                      email: string;
-                    };
-                    /** @enum {string} */
-                    alertState: "normal" | "warning" | "alerting";
-                    /** Format: date-time */
-                    createdAt: string;
-                  })[];
-                alertStrategies: ({
-                    /** @enum {string} */
-                    comparator: "gt" | "eq" | "lt" | "lte" | "gte";
-                    value: number;
-                    /** @enum {string} */
-                    pendingPeriod: "none" | "min_1" | "min_5" | "min_10" | "min_15" | "min_30" | "hr_1" | "hr_6";
-                    /** @enum {string} */
-                    interval: "sec_30" | "min_1" | "min_2" | "min_5" | "min_10" | "min_30" | "hr_1" | "hr_3" | "hr_6" | "hr_12";
-                  })[];
-                alertIntegrations: {
-                    id: string;
-                    alertId: string;
-                    integration: {
-                      id: string;
-                      /** Format: date-time */
-                      createdAt: string;
-                      enabled: boolean;
-                      config: {
-                        [key: string]: unknown;
-                      };
-                      integration: {
-                        id: string;
-                        name: string;
-                        type: string;
-                      };
-                    };
-                    /** Format: date-time */
-                    createdAt: string;
-                  }[];
-                project: {
-                  id: string;
-                  name: string | null;
-                  teamId: string;
-                  slug: string;
-                  description: string | null;
-                  environment: string | null;
-                  /** Format: date-time */
-                  createdAt: string;
-                };
-              })[];
-            pageInfo: {
-              hasNextPage: boolean;
-              hasPreviousPage: boolean;
-              startCursor: string | null;
-              endCursor: string | null;
-            };
-          };
+          "application/json": string[];
         };
       };
       default: components["responses"]["error"];
@@ -1296,10 +719,7 @@ export interface operations {
       content: {
         "application/json": {
           /** @description The configuration being created for the integration */
-          config: {
-            name: string;
-            emails: string[];
-          } | ({
+          config: ({
             name: string;
             type: "s3-compatible" | "digitalocean";
             accessKeyId: string;
@@ -1392,10 +812,7 @@ export interface operations {
       content: {
         "application/json": {
           /** @description The configuration to upsert. */
-          config: {
-            name: string;
-            emails: string[];
-          } | ({
+          config: ({
             name: string;
             type: "s3-compatible" | "digitalocean";
             accessKeyId: string;

@@ -1,6 +1,6 @@
 {
   "name": "@moonbasehq/js",
-  "version": "0.0.0-canary-2",
+  "version": "0.0.0-canary-3",
   "exports": {
     ".": "./src/index.ts"
   },
