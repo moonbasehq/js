@@ -10,31 +10,11 @@ Contains SDKs. Current offered SDK's:
 ### Default usage
 
 ```ts
+import { Moonbase } from '@moonbasehq/js';
+
 const moon = new Moonbase({
-  apiKey: 'moonbase_<...>',
-  projectId: 'clqq3cle50009zg3fplnzqwxs'
-});
-
-// returns a promise
-moon.ingest([{
-  body: 'this is a log'
-}])
-```
-
-### Testing locally
-
-Set the `MOONBASE_URL` env in your local shell.
-
-```bash
-export MOONBASE_URL='http://api.moonbase.hqdev:8085/v1'
-```
-
-Then...
-
-```ts
-const moon = new Moonbase({
-  apiKey: 'moonbase_<...>',
-  projectId: 'clqq3cle50009zg3fplnzqwxs'
+  apiKey: 'moonbase_...',
+  projectId: 'clvmvinlr0003zs0sh6z675hk'
 });
 
 // returns a promise
@@ -47,7 +27,7 @@ moon.ingest([{
 
 ```ts
 import build from 'pino-abstract-transport';
-import { Moonbase } from '@moonbasehq/js-core';
+import { Moonbase } from '@moonbasehq/js';
 
 export default async function moonbaseTransport(options: { apiKey: string, projectId: string }) {
   const moon = new Moonbase(options);

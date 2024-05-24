@@ -1,12 +1,17 @@
 {
   "name": "@moonbasehq/js",
-  "version": "0.0.0-canary-3",
+  "version": "0.0.0",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./dist/index.js"
   },
+  "author": "Brodey Newman brodey@moonbasehq.com",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moonbasehq/js"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "lint": "eslint . --max-warnings 0",

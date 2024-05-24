@@ -15,29 +15,9 @@ export type LogBodyData = { [key: string]: any } | { [key: string]: any }[];
 
 const AGENT = `moonbasehq/sdk-core-${CORE_VERSION}`;
 
-type QueryParams = {
-  query?: LogParams["q"];
-  projectIds?: Array<string>;
-  start?: LogParams["start"];
-  end?: LogParams["end"];
-  cursor?: LogParams["cursor"];
-  limit?: LogParams["limit"];
-  relativeDate?: LogParams["rel"];
-}
-
-function createHttpClient(apiKey: string) {
-  return createClient<paths>({
-    baseUrl: BASE_API_URL,
-    headers: {
-      "x-moonbase-token": apiKey,
-      "User-Agent": AGENT
-    }
-  });
-}
-
 export class Core {
-  private apiKey: string;
   private projectId: string;
+  private client: any;
 
   constructor(options: ClientOptions) {
     if (!options.apiKey) {
@@ -48,13 +28,19 @@ export class Core {
       throw new Error("@moonbasehq/core: Cannot instantiate service without required parameter: [projectId]")
     }
 
-    this.apiKey = options.apiKey;
     this.projectId = options.projectId;
+
+    this.client = createClient<paths>({
+      baseUrl: BASE_API_URL,
+      headers: {
+        "x-moonbase-token": options.apiKey,
+        "User-Agent": AGENT
+      }
+    });
   }
 
-  ingest(data: LogBodyData) {
-    // @ts-expect-error
-    return createHttpClient(this.apiKey).POST(`/projects/${this.projectId}/logs?levelKey=level`, {
+  ingest(data: LogBodyData): Promise<{ success: boolean }> {
+    return this.client.POST(`/projects/${this.projectId}/logs?levelKey=level`, {
       body: data
     });
   }
