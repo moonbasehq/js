@@ -3,7 +3,6 @@
 Contains SDKs. Current offered SDK's:
 
 1. [Core](./packages/core) (default)
-2. [Pino](./packages/pino)
 
 ## Usage
 
