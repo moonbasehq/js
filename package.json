@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
+    "@moonbasehq/js": "workspace:*",
     "@moonbasehq/eslint-config": "workspace:*",
     "@moonbasehq/typescript-config": "workspace:*",
     "prettier": "^3.1.1",
