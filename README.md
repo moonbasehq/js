@@ -1,6 +1,7 @@
 # JavaScript SDK's for Moonbase
 
-Contains SDKs. Current offered SDK's:
+Contains Javascript SDKs. Currently built:
 
 1. [JS](./packages/core) (default)
-1. [Pino](./packages/pino) (pino transport)
+2. [Pino](./packages/pino) (pino transport)
+3. [Winston](./packages/winston) (winston transport)

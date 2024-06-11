@@ -1,6 +1,6 @@
 {
-  "name": "@moonbasehq/pino",
-  "version": "0.0.1",
+  "name": "@moonbasehq/winston",
+  "version": "0.0.0",
   "exports": {
     ".": "./dist/index.js"
   },
@@ -19,8 +19,8 @@
   },
   "devDependencies": {
     "@moonbasehq/eslint-config": "workspace:*",
-    "@moonbasehq/typescript-config": "workspace:*",
     "@moonbasehq/js": "workspace:*",
+    "@moonbasehq/typescript-config": "workspace:*",
     "@turbo/gen": "^1.11.3",
     "@types/eslint": "^8.56.1",
     "@types/node": "^20.10.6",
@@ -30,6 +30,6 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "pino-abstract-transport": "^1.2.0"
+    "winston-transport": "^4.7.0"
   }
 }
