@@ -9,7 +9,6 @@ pnpm i --save @moonbasehq/pino
 Create your pino logger
 
 ```typescript
-import fastify from 'fastify';
 import pino from 'pino';
 
 const transport = pino.transport({
